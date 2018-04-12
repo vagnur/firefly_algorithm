@@ -15,7 +15,7 @@ enviroment::enviroment(const int number_of_parameters, const int number_of_firef
 	this->fireflies.assign(number_of_fireflies, firefly(number_of_parameters,beta,lower_bounds,upper_bounds));
 }
 
-void enviroment::initial_fireflies(const std::function<double(std::vector<double>,int)> fitness)
+void enviroment::initial_fireflies(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)
 {
 	for(int i=0;i<this->number_of_fireflies;i++)
 	{
@@ -23,7 +23,7 @@ void enviroment::initial_fireflies(const std::function<double(std::vector<double
 	}
 }
 
-void enviroment::move_fireflies(const double alpha, const double betta_0, const double step_size, const std::vector<double> lower_bounds, const std::vector<double> upper_bounds, const std::function<double(std::vector<double>,int)> fitness)
+void enviroment::move_fireflies(const double alpha, const double betta_0, const double step_size, const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)
 {
 	double distance;
 	//Each firefly is compared with the rest ones and is moved to the brigher ones
@@ -39,13 +39,14 @@ void enviroment::move_fireflies(const double alpha, const double betta_0, const 
 			//Esta sería utilizando el concepto del atractivo
 			//if(i!=j && (this->fireflies[j].get_light_intensity()*exp(-this->ligth_absorption*pow(distance,2.0))) > this->fireflies[i].get_light_intensity())
 			{
-				this->fireflies[i].move(this->fireflies[j].get_solution(),alpha,betta_0,this->ligth_absorption,distance,step_size,lower_bounds,upper_bounds);
+				this->fireflies[i].move(this->fireflies[j].get_solution(),alpha,betta_0,this->ligth_absorption,distance,step_size);
+				//this->fireflies[i].update_light_intensity(fitness);				
 			}
 		}
 	}
 }
 
-void enviroment::update_fireflies_light(const std::function<double(std::vector<double>,int)> fitness)
+void enviroment::update_fireflies_light(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)
 {
 	for(int i=0;i<this->number_of_fireflies;i++)
 	{
@@ -71,6 +72,14 @@ void enviroment::rank_fireflies(void)
 double enviroment::get_brighter_firefly(void)
 {
 	return this->fireflies[0].get_light_intensity();
+}
+
+void enviroment::update_solutions(void)
+{
+	for(int i=0;i<this->number_of_fireflies;i++)
+	{
+		this->fireflies[i].update_solution();
+	}
 }
 
 void enviroment::post_process(void)

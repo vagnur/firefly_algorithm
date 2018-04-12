@@ -5,7 +5,7 @@ firefly::firefly(void)
 	;
 }
 
-firefly::firefly(const int number_of_parameters, const double betta, const std::vector<double> lower_bounds, const std::vector<double> upper_bounds)
+firefly::firefly(const int number_of_parameters, const double betta, const std::vector<double> min, const std::vector<double> max)
 {
 	//Each attribute of the class is initialized and the memory is reserved for each vector.
 	this->betta = betta;
@@ -22,26 +22,24 @@ firefly::firefly(const int number_of_parameters, const double betta, const std::
 	this->sign_selector = sign;
 	this->number_of_parameters = number_of_parameters;
 	this->solution.resize(number_of_parameters);
-	this->parameters_distributions.resize(number_of_parameters);
-	//Each parameter get a distribution bewteen is lower and upper bound
-	for(int i=0;i<number_of_parameters;i++)
-	{
-		std::uniform_real_distribution<double> dis(lower_bounds[i], upper_bounds[i]);
-		this->parameters_distributions[i] = dis;
-	}
+	this->new_solution.resize(number_of_parameters);
+	std::uniform_real_distribution<double> parameter_selector(0.0, 1.0);
+	this->parameter_selector = parameter_selector;
+	this->min = min;
+	this->max = max;
 }
 
-void firefly::generate_solution(const std::function<double(std::vector<double>,int)> fitness)
+void firefly::generate_solution(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
 	for(int i=0;i<this->number_of_parameters;i++)
 	{
 		//For each parameter, a random value is obtained and setted in the i position of the solution vector
-		this->solution[i] = this->parameters_distributions[i](generator);;
+		this->solution[i] = this->parameter_selector(generator);;
 	}
 	//Calcuate the light intesity (e.g fitness) for the given solution
-	this->ligth_intensity = fitness(this->solution,this->number_of_parameters);
+	this->ligth_intensity = fitness(this->solution,this->number_of_parameters,this->min,this->max);
 }
 
 double firefly::levy_flight(const double &step_size)
@@ -67,7 +65,7 @@ double firefly::levy_flight(const double &step_size)
 	return step_size*s;
 }
 
-void firefly::move(const std::vector<double> brighter_firefly, const double alpha, const double betta_0, const double light_absorption, const double distance, const double step_size, const std::vector<double> lower_bounds, const std::vector<double> upper_bounds)
+void firefly::move(const std::vector<double> brighter_firefly, const double alpha, const double betta_0, const double light_absorption, const double distance, const double step_size)
 {
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 generator(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -79,28 +77,32 @@ void firefly::move(const std::vector<double> brighter_firefly, const double alph
 		direction = this->direction(generator);
 		//Attractiveness of the firefly
 		attraction = betta_0 * exp(-1*light_absorption*pow(distance,2));
-		////Aplication of the bounds if needed
-		if(this->solution[i] + attraction + alpha * this->sign() * levy_flight_perform_step * direction > upper_bounds[i])
+		this->new_solution[i] = ((this->solution[i]*(1-attraction)) + (brighter_firefly[i]*attraction) + (alpha * this->sign() )) + levy_flight_perform_step * direction;
+		//Aplication of the bounds if needed
+		if(this->new_solution[i] > 1.0)
 		{
-			this->solution[i] = upper_bounds[i];
+			this->new_solution[i] = 1.0;
 		}
-		else if(this->solution[i] + attraction + alpha * this->sign() * levy_flight_perform_step * direction < lower_bounds[i])
+		if(this->new_solution[i] < 0.0)
 		{
-			this->solution[i] = lower_bounds[i];
-		}
-		//In any other case the new solution x_i = x_i + Betta_0 * exp^-(gamma*distance^2) + alpha * sign * Levy flight
-		//				where sign is 1 or -1
-		else if(this->solution[i] + attraction + alpha * this->sign() * levy_flight_perform_step * direction > lower_bounds[i] && this->solution[i] + attraction + alpha * this->sign() * levy_flight_perform_step * direction < upper_bounds[i])
-		{
-			this->solution[i] = this->solution[i] + attraction + alpha * this->sign() * levy_flight_perform_step * direction;
+			this->new_solution[i] = 0.0;
 		}
 	}
 }
 
-void firefly::update_light_intensity(const std::function<double(std::vector<double>,int)> fitness)
+void firefly::update_light_intensity(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)
 {
-	this->ligth_intensity = fitness(this->solution,this->number_of_parameters);
+	this->ligth_intensity = fitness(this->solution,this->number_of_parameters,this->min,this->max);
 }
+
+void firefly::update_solution(void)
+{
+	for(int i=0;i<this->number_of_parameters;i++)
+	{
+		this->solution[i] = this->new_solution[i];
+	}
+}
+
 
 double firefly::sign(void)
 {

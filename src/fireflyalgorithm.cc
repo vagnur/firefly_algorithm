@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <enviroment.hh>
 
-double fitness(std::vector<double> cuckoo_egg,int number_of_parameters);
+double fitness(std::vector<double> solution,int number_of_parameters,std::vector<double> min,std::vector<double> max);
 
 int main(int argc, char** argv)
 {
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	int number_of_parameters=0,number_of_fireflies=0,max_generations=0,t=0,output=10;
 	double betta=0.0,alpha=0.0,betta_0=0.0,light_absorption=0.0,stop_criterion=0.0;
 	extern char *optarg;
-	while((c=getopt(argc,argv,"p:f:g:b:a:t:l:o:"))!=-1)
+	while((c=getopt(argc,argv,"p:f:g:b:a:t:l:o:s:"))!=-1)
 	{
 		switch (c)
 		{
@@ -45,6 +45,9 @@ int main(int argc, char** argv)
 				break;
 			case 'l':
 				light_absorption = std::stod(optarg);
+				break;
+			case 's':
+				stop_criterion = std::stod(optarg);
 				break;
 		}
 	}
@@ -84,20 +87,31 @@ int main(int argc, char** argv)
 		std::cout << "Mandatory parameter -l (light absorption)[gamma] needed" << std::endl;
 		return -1;
 	}
-
-	//TODO : Get the bounds and the stop criterion from files
-
-	std::vector<double> lower_bound(number_of_parameters);
-	std::vector<double> upper_bound(number_of_parameters);
-
-	for(int i=0;i<number_of_parameters;i++)
+	if(stop_criterion==0.0)
 	{
-		lower_bound[i] = 0;
-		upper_bound[i] = 4;
+		std::cout << "Mandatory parameter -s (stop criterion) needed" << std::endl;
+		return -1;
 	}
 
+	//Min and max for each parameter
+	std::vector<double> min(number_of_parameters);
+	std::vector<double> max(number_of_parameters);
+
+	//File read
+	std::ifstream input;
+	input.open("input.data",std::ifstream::in);
+	for(int i=0;i<number_of_parameters;i++)
+	{
+		input >> min[i];
+	}
+	for(int i=0;i<number_of_parameters;i++)
+	{
+		input >> max[i];
+	}
+	input.close();
+
 	//Initialization of the enviroment
-	enviroment env(number_of_parameters,number_of_fireflies,light_absorption,betta,lower_bound,upper_bound);
+	enviroment env(number_of_parameters,number_of_fireflies,light_absorption,betta,min,max);
 
 	//Generation of the initial fireflies
 	env.initial_fireflies(fitness);
@@ -105,11 +119,12 @@ int main(int argc, char** argv)
 	while(t < max_generations)
 	{
 		//Move the fireflies towards the brighter ones
-		env.move_fireflies(alpha,betta_0,0.01,lower_bound,upper_bound,fitness);
+		env.move_fireflies(alpha,betta_0,0.01,fitness);
+		//Update the fireflies light intensity
+		env.update_solutions();
+		env.update_fireflies_light(fitness);
 		//Order the fireflies according to the light intensity
 		env.rank_fireflies();
-		//Update the fireflies light intensity
-		env.update_fireflies_light(fitness);
 		t++;
 		//Feedback
 		if(t%output==0)
@@ -128,19 +143,20 @@ int main(int argc, char** argv)
 	std::cout << "Best firefly at generation: " << t  << std::endl;
 	for(int i=0;i<number_of_parameters;i++)
 	{
-		std::cout << best_firefly[i] << " ";
+		std::cout << (best_firefly[i]*(max[i]-min[i]))+min[i] << " ";
 	}
 	std::cout << std::endl;
 
 	return 0; 
 }
 
-double fitness(std::vector<double> cuckoo_egg, int number_of_parameters)
+double fitness(std::vector<double> solution, int number_of_parameters, std::vector<double> min, std::vector<double> max)
 {
-	double fitness=0,value;
-	for(unsigned int i=0;i<cuckoo_egg.size();i++)
+	double fitness=0,value,unormal_value;
+	for(unsigned int i=0;i<solution.size();i++)
 	{
-		value = i-cuckoo_egg[i];
+		unormal_value = (solution[i]*(max[i]-min[i]))+min[i];	
+		value = i - unormal_value;
 		fitness = fitness + pow(value,2);
 	}
 	return fitness/number_of_parameters;
