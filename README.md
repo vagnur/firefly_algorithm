@@ -1,4 +1,4 @@
-# Firefly Algorithm
+# Levy Flight Firefly Algorithm
 
 C++ implementation of the firefly algorithm metaheuristic for optmization problems.
 
