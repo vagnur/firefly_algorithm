@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 	{
 		//Move the fireflies towards the brighter ones
 		env.move_fireflies(alpha,betta_0,0.01,fitness);
-		//Update the fireflies light intensity and solutions
+		//Update the fireflies light intensity
 		env.update_solutions();
 		env.update_fireflies_light(fitness);
 		//Order the fireflies according to the light intensity

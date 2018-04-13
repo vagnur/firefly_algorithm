@@ -5,14 +5,14 @@ enviroment::enviroment(void)
 	;
 }
 
-enviroment::enviroment(const int number_of_parameters, const int number_of_fireflies, const double ligth_absorption, const double beta, const std::vector<double> lower_bounds, const std::vector<double> upper_bounds)
+enviroment::enviroment(const int number_of_parameters, const int number_of_fireflies, const double ligth_absorption, const double beta, const std::vector<double> min, const std::vector<double> max)
 {
 	//Each parameter is seted
 	this->number_of_parameters = number_of_parameters;
 	this->number_of_fireflies = number_of_fireflies;
 	this->ligth_absorption = ligth_absorption;
 	//The fireflies vector beggin whit a firefly in each position.
-	this->fireflies.assign(number_of_fireflies, firefly(number_of_parameters,beta,lower_bounds,upper_bounds));
+	this->fireflies.assign(number_of_fireflies, firefly(number_of_parameters,beta,min,max));
 }
 
 void enviroment::initial_fireflies(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness)

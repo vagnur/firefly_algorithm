@@ -29,10 +29,10 @@ private:
 	int number_of_parameters;
 	//A vector thar represent the solution of the problem
 	std::vector<double> solution;
+	//A vector that represent the solution while the firefly is moving
 	std::vector<double> new_solution;
-	//
+	//Vector that allocate the minimum and the maximum of each parameter i
 	std::vector<double> min;
-	//
 	std::vector<double> max;
 
 public:
@@ -41,14 +41,15 @@ public:
 	//Constructor of the class
 	//	int number of parameter = number of parameters in the problem
 	//	double betta = used in the levy flight
-	//	vector lower_bounds = lower bounds of each parameter
-	//	vector upped_bounds = upper bounds of each parameter
+	//	vector min = lower bounds of each parameter
+	//	vector max = upper bounds of each parameter
 	firefly(const int number_of_parameters, const double betta, const std::vector<double> min, const std::vector<double> max);
 	//Generate a solution for the firefly
 	void generate_solution(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness);
 	//Perfom a Levy flight
 	//	double step_size = Actual step size of the Levy flight
 	double levy_flight(const double &step_size);
+	//Update the actual solution to the moved one
 	void update_solution(void);
 	//Get the light intensity of the firefly
 	double get_light_intensity(void) const; 
@@ -59,8 +60,6 @@ public:
 	//	double light_absorption = light absorption factor. Must be a value bewteen 0 and 1
 	//	double distance = distance between the current (this) firefly and the one towards the movement
 	//	double step_size = Used in the levy flight
-	//	vector lower_bounds = lower bounds of each parameter
-	//	vector upped_bounds = upper bounds of each parameter
 	void move(const std::vector<double> brighter_firefly, const double alpha, const double betta_0, const double light_absorption, const double distance, const double step_size);
 	//Update the light intensity of the firefly
 	void update_light_intensity(const std::function<double(std::vector<double>,int,std::vector<double>,std::vector<double>)> fitness);
