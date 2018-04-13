@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include <enviroment.hh>
 
@@ -120,7 +121,7 @@ int main(int argc, char** argv)
 	{
 		//Move the fireflies towards the brighter ones
 		env.move_fireflies(alpha,betta_0,0.01,fitness);
-		//Update the fireflies light intensity
+		//Update the fireflies light intensity and solutions
 		env.update_solutions();
 		env.update_fireflies_light(fitness);
 		//Order the fireflies according to the light intensity
@@ -150,11 +151,16 @@ int main(int argc, char** argv)
 	return 0; 
 }
 
+//Example of fitness
+//In this case, the algorithm needs to guess the sequence [0,1,2,3,4]
 double fitness(std::vector<double> solution, int number_of_parameters, std::vector<double> min, std::vector<double> max)
 {
 	double fitness=0,value,unormal_value;
+	//In this case wee use the Mean squared error
 	for(unsigned int i=0;i<solution.size();i++)
 	{
+		//See that, since the algorithm searchs in a [0,1] space,
+		//is necesary to adjust the values in the search space
 		unormal_value = (solution[i]*(max[i]-min[i]))+min[i];	
 		value = i - unormal_value;
 		fitness = fitness + pow(value,2);
