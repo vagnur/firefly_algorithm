@@ -43,7 +43,9 @@ Where:
 
 ## Algorithm
 
-For more information see: _Yang, X. S. (2010). Firefly algorithm, stochastic test functions and design optimisation. International Journal of Bio-Inspired Computation, 2(2), 78-84._
+For more information about cuckoo search see _Yang, X. S. (2010). Firefly algorithm, stochastic test functions and design optimisation. International Journal of Bio-Inspired Computation, 2(2), 78-84._
+
+For more information about Levy Flights see chapter 2 of _Yang, X. S. (2010). Nature-inspired metaheuristic algorithms. Luniver press._
 
 ## License
 
